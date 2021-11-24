@@ -28,22 +28,26 @@ transforms.ToTensor(),
 ])
 
 
-train_dataset = datasets.ImageFolder(root='./dataset/train', transform=train_transform)
-test_dataset = datasets.ImageFolder(root='./dataset/test', transform=test_transform)
+dataset = datasets.ImageFolder(root='./dataset', transform=train_transform)
 
 
 
-train_dataset.transform = train_transform
+m=len(dataset)
+
+train_data, test_dataset = random_split(dataset, [int(m*0.7) + 1, int(m*0.3)])
+
+n = len(test_dataset)
+
+test_dataset, val_data = random_split(test_dataset, [int(n*0.7) + 1, int(n*0.3)])
+
+train_data.transform = train_transform
 test_dataset.transform = test_transform
 
-m=len(train_dataset)
-
-train_data, val_data = random_split(train_dataset, [int(m-m*0.2), int(m*0.2)])
-batch_size=256
+batch_size=8
 
 train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
 valid_loader = torch.utils.data.DataLoader(val_data, batch_size=batch_size)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 
 
@@ -155,6 +159,7 @@ def train_epoch_den(encoder, decoder, device, dataloader, loss_fn, optimizer,noi
     encoder.train()
     decoder.train()
     train_loss = []
+    
     # Iterate the dataloader (we do not need the label values, this is unsupervised learning)
     for image_batch, _ in dataloader: # with "_" we just ignore the labels (the second element of the dataloader tuple)
         # Move tensor to the proper device
