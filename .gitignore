@@ -1,3 +1,6 @@
 dataset/*
 results/*
 weights/*
+inference/*
+postprocess/*
+mnist/*

@@ -1,12 +1,8 @@
-from os import terminal_size
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-import pandas as pd 
-import random 
-import torchvision
 from torchvision import transforms, datasets
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import random_split
 from torch import nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -154,7 +150,7 @@ encoder.to(device)
 decoder.to(device)
 
 ### Training function
-def train_epoch_den(encoder, decoder, device, dataloader, loss_fn, optimizer,noise_factor=0.3):
+def train_epoch_den(encoder, decoder, device, dataloader, loss_fn, optimizer, noise_factor=0.3):
     # Set train mode for both the encoder and the decoder
     encoder.train()
     decoder.train()
@@ -213,7 +209,7 @@ def plot_ae_outputs(encoder,decoder,n=5,epoch=0):
     plt.figure(figsize=(10,4.5))
     for i in range(n):
       ax = plt.subplot(2,n,i+1)
-      img = train_dataset[i][0].unsqueeze(0).to(device)
+      img = train_data[i][0].unsqueeze(0).to(device)
       encoder.eval()
       decoder.eval()
       with torch.no_grad():

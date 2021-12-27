@@ -1,7 +1,10 @@
+from matplotlib.colors import to_hex
 import torch
 from torchvision import transforms, datasets
 from torch.utils.data import Dataset
 from torchvision.utils import save_image
+from PIL import Image, ImageDraw
+import random
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -77,10 +80,10 @@ class AE(torch.nn.Module):
 
         return x
 
-def init_model():
+def init_model(weigths):
 
     # Model Initialization
-    model = AE()
+    model = torch.load(weigths)
     # Validation using MSE Loss function
     loss_function = torch.nn.MSELoss()
     
@@ -149,11 +152,25 @@ class NumbersDataset(Dataset):
     def __getitem__(self, idx):
         return self.samples.__getitem__(idx)[0].to(device), self.labels.__getitem__(idx)[0].to(device)
 
-
-
-def main():
-
     
+def inference_model(model, img_name):
+
+    img = Image.open(img_name)
+    img = img.resize((512, 512))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([random.randrange(0, 512), random.randrange(0, 512),random.randrange(0, 512), random.randrange(0, 512)], fill='black')
+
+    img.save('.\\postprocess\\' + img_name.split('\\')[-1])
+    convert_tensor = transforms.ToTensor()
+    converted_img = convert_tensor(img)
+
+    recontructed = model(converted_img[None, :].to(device))
+
+    save_image(recontructed.detach(), ".\\inference\\" + img_name.split('\\')[-1])
+
+
+def pipeline_train_model(weigths):
+
     tensor_transform = transforms.Compose([
         transforms.PILToTensor(),
         transforms.ConvertImageDtype(torch.float),
@@ -166,8 +183,6 @@ def main():
         transforms.ConvertImageDtype(torch.float),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
-    
-    # Download the MNIST Dataset
 
     dataset = NumbersDataset(tensor_transform, test_transform, device)
     
@@ -176,8 +191,30 @@ def main():
                                         batch_size = 64,
                                         shuffle = True)
 
+    train_model(init_model(weigths), loader)
 
-    train_model(init_model(), loader)
+
+def main():
+
+    weigths = '.\\weights\\weights_400.pth'
+    img_name = '.\\prueba.jpg'
+
+
+    pipeline_train_model(weigths)
+
+
+
+    '''
+    model = torch.load(weigths)
+
+
+    files = glob.glob('.\\dataset\\test\\*.jpg')
+
+    for file in files:
+        inference_model(model, file)
+
+    '''
+
     print('Done')
 
 
